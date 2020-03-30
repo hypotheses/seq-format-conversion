@@ -33,6 +33,13 @@ version 1.0
 ## page at https://hub.docker.com/r/broadinstitute/genomes-in-the-cloud/ for detailed
 ## licensing information pertaining to the included programs.
 
+## Modification
+## Bhoom Suktitipat [suktitipat@gmail.com]
+## From: https://github.com/gatk-workflows/seq-format-conversion/commit/0f4abf107950769ffd891770db18c9691e720314
+## 1. Adjust the disk multipliers for fastq.gz files (*6 of fastq.gz file size)
+## 2. Change default option for fofn to "true" (create unmapped_bam_list)
+## 3. Change the default pre-emptible attemp from 3 to 1
+
 # WORKFLOW DEFINITION
 workflow ConvertPairedFastQsToUnmappedBamWf {
   input {
@@ -46,7 +53,7 @@ workflow ConvertPairedFastQsToUnmappedBamWf {
     String platform_name 
     String sequencing_center 
 
-    Boolean make_fofn = false
+    Boolean make_fofn = true
 
     String gatk_docker = "broadinstitute/gatk:latest"
     String gatk_path = "/gatk/gatk"
@@ -110,7 +117,7 @@ task PairedFastQsToUnmappedBAM {
     String docker
   }
     Int command_mem_gb = machine_mem_gb - 1
-    Int disk_space_gb = ceil((size(fastq_1, "GB") + size(fastq_2, "GB")) * 2 ) + addtional_disk_space_gb
+    Int disk_space_gb = ceil((size(fastq_1, "GB") + size(fastq_2, "GB")) * 6 ) + addtional_disk_space_gb
   command {
     ~{gatk_path} --java-options "-Xmx~{command_mem_gb}g" \
     FastqToSam \
@@ -153,7 +160,7 @@ task CreateFoFN {
   }
   runtime {
     docker: "ubuntu:latest"
-    preemptible: 3
+    preemptible: 1
   }
 }
 
